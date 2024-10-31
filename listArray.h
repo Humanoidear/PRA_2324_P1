@@ -1,126 +1,125 @@
-#ifndef LISTARRAY_H
-#define LISTARRAY_H
-
 #include <ostream>
-#include <stdexcept>
-#include "list.h"
+#include "List.h"
 
 template <typename T>
 class ListArray : public List<T> {
 private:
-    T* arr;                    // Puntero al array dinámico
-    int max;                   // Tamaño máximo del array
-    int n;                     // Número de elementos en la lista
-    static const int MINSIZE = 2; // Tamaño mínimo del array
-
-    // Método para redimensionar el array
-    void resize(int new_size) {
-        T* newArr = new T[new_size]; // Crear nuevo array de tamaño new_size
-        for (int i = 0; i < n; i++) {
-            newArr[i] = arr[i]; // Copiar datos al nuevo array
-        }
-        delete[] arr;           // Liberar memoria del array antiguo
-        arr = newArr;           // Actualizar puntero
-        max = new_size;         // Actualizar tamaño máximo
-    }
+    int max;
+    static const int MINSIZE = 2;
+    void resize(int new_size);
 
 public:
-    // Constructor sin argumentos
-    ListArray() : arr(new T[MINSIZE]), max(MINSIZE), n(0) {}
+    T* arr;
+    int n;
+    // Inherited methods from List
+    void insert(int pos, T e) override;
+    void prepend(T e) override;
+    void append(T e) override;
+    T remove(int pos) override;
+    T get(int pos) override;
+    int search(T e) override;
+    bool empty() override;
+    int size() override;
 
-    // Destructor
-    ~ListArray() {
-        delete[] arr; // Liberar memoria dinámica
-    }
-
-    // Método insert: inserta un elemento en la posición pos
-    void insert(int pos, T e) override {
-        if (pos < 0 || pos > n) {
-            throw std::out_of_range("Posición fuera del rango");
-        }
-        if (n == max) {
-            resize(max * 2); // Aumentar el tamaño del array si está lleno
-        }
-        for (int i = n; i > pos; i--) {
-            arr[i] = arr[i - 1]; // Desplazar elementos a la derecha
-        }
-        arr[pos] = e; // Insertar nuevo elemento
-        n++;
-    }
-
-    // Método append: agrega un elemento al final de la lista
-    void append(T e) override {
-        insert(n, e); // Insertar en la última posición
-    }
-
-    // Método prepend: agrega un elemento al principio de la lista
-    void prepend(T e) override {
-        insert(0, e); // Insertar en la primera posición
-    }
-
-    // Método remove: elimina y devuelve el elemento en la posición pos
-    T remove(int pos) override {
-        if (pos < 0 || pos >= n) {
-            throw std::out_of_range("Posición fuera del rango");
-        }
-        T removedElement = arr[pos];
-        for (int i = pos; i < n - 1; i++) {
-            arr[i] = arr[i + 1]; // Desplazar elementos a la izquierda
-        }
-        n--;
-        if (n > 0 && n < max / 4) {
-            resize(max / 2); // Reducir el tamaño del array si está "demasiado vacío"
-        }
-        return removedElement;
-    }
-
-    // Método get: devuelve el elemento en la posición pos
-    T get(int pos) const override {
-        if (pos < 0 || pos >= n) {
-            throw std::out_of_range("Posición fuera del rango");
-        }
-        return arr[pos];
-    }
-
-    // Método search: devuelve la posición de la primera ocurrencia del elemento, o -1 si no se encuentra
-    int search(T e) const override {
-        for (int i = 0; i < n; i++) {
-            if (arr[i] == e) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    // Método empty: devuelve true si la lista está vacía
-    bool empty() const override {
-        return n == 0;
-    }
-
-    // Método size: devuelve el número de elementos en la lista
-    int size() const override {
-        return n;
-    }
-
-    // Sobrecarga del operador [] para acceder a los elementos de la lista
-    T operator[](int pos) {
-        if (pos < 0 || pos >= n) {
-            throw std::out_of_range("Posición fuera del rango");
-        }
-        return arr[pos];
-    }
-
-    // Sobrecarga del operador << para imprimir la lista
-    friend std::ostream& operator<<(std::ostream &out, const ListArray<T> &list) {
-        out << "[";
-        for (int i = 0; i < list.n; i++) {
-            out << list.arr[i];
-            if (i < list.n - 1) out << ", ";
-        }
-        out << "]";
-        return out;
-    }
+    // New methods for ListArray
+    ListArray();
+    ~ListArray();
+    T operator[](int pos);
+    friend std::ostream& operator<<(std::ostream &out, const ListArray<T> &list);
 };
 
-#endif // LISTARRAY_H
+template <typename T>
+void ListArray<T>::insert(int pos, T e) {
+    if (n == max) {
+        resize(max * 2);
+    }
+    for (int i = n; i > pos; i--) {
+        arr[i] = arr[i - 1];
+    }
+    arr[pos] = e;
+    n++;
+}
 
+template <typename T>
+void ListArray<T>::prepend(T e) {
+    insert(0, e);
+}
+
+template <typename T>
+void ListArray<T>::append(T e) {
+    insert(n, e);
+}
+
+template <typename T>
+T ListArray<T>::remove(int pos) {
+    T e = arr[pos];
+    for (int i = pos; i < n - 1; i++) {
+        arr[i] = arr[i + 1];
+    }
+    n--;
+    if (n < max / 4) {
+        resize(max / 2);
+    }
+    return e;
+}
+
+template <typename T>
+T ListArray<T>::get(int pos) {
+    return arr[pos];
+}
+
+template <typename T>
+int ListArray<T>::search(T e) {
+    for (int i = 0; i < n; i++) {
+        if (arr[i] == e) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+template <typename T>
+bool ListArray<T>::empty() {
+    return n == 0;
+}
+
+template <typename T>
+int ListArray<T>::size() {
+    return n;
+}
+
+template <typename T>
+ListArray<T>::ListArray() {
+    arr = new T[MINSIZE];
+    max = MINSIZE;
+    n = 0;
+}
+
+template <typename T>
+ListArray<T>::~ListArray() {
+    delete[] arr;
+}
+
+template <typename T>
+T ListArray<T>::operator[](int pos) {
+    return arr[pos];
+}
+
+template <typename T>
+std::ostream& operator<<(std::ostream &out, ListArray<T> &list) {
+    for (int i = 0; i < list.n; i++) {
+        out << list.arr[i] << " ";
+    }
+    return out;
+}
+
+template <typename T>
+void ListArray<T>::resize(int new_size) {
+    T* new_arr = new T[new_size];
+    for (int i = 0; i < n; i++) {
+        new_arr[i] = arr[i];
+    }
+    delete[] arr;
+    arr = new_arr;
+    max = new_size;
+}
